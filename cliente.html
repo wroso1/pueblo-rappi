@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pueblo Delivery - Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #fdfdfd; font-family: 'Inter', sans-serif; }
+        .product-card { transition: transform 0.2s; }
+        .product-card:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="max-w-md mx-auto shadow-2xl min-h-screen bg-gray-50">
+    <header class="bg-white border-b p-4 sticky top-0 z-10 flex justify-between items-center">
+        <h1 class="text-xl font-black text-yellow-500 tracking-tighter italic">Pueblo-Fast <span class="text-black">Delivery</span></h1>
+        <div class="text-gray-500"><i class="fa-solid fa-location-dot"></i> <span class="text-xs">Mi Pueblo, Col</span></div>
+    </header>
+
+    <main class="p-4">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-1">¿Qué se te antoja?</h2>
+            <p class="text-gray-500 text-sm">Los mejores productos de nuestro pueblo</p>
+        </div>
+
+        <div id="menu" class="grid grid-cols-1 gap-4">
+            <!-- Products render here -->
+        </div>
+    </main>
+
+    <!-- Modal Pedido -->
+    <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50">
+        <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up">
+            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden"></div>
+            <h3 id="modal-title" class="text-xl font-bold mb-2">Confirmar Pedido</h3>
+            <div id="modal-details" class="text-gray-600 mb-6"></div>
+            
+            <label class="block text-sm font-bold text-gray-700 mb-2">¿A dónde lo llevamos?</label>
+            <input type="text" id="address" placeholder="Ej. Calle 5 # 10-20, Barrio Centro" 
+                   class="w-full p-4 bg-gray-100 rounded-2xl border-none focus:ring-2 focus:ring-yellow-400 outline-none mb-6 transition-all text-gray-800">
+
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition">Cancelar</button>
+                <button id="btn-send" class="flex-1 py-4 bg-yellow-400 text-black font-black rounded-2xl shadow-lg hover:bg-yellow-500 transition">PEDIR AHORA</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN FIREBASE (Reemplazar con credenciales reales)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-EXAMPLE-key",
+            authDomain: "demo-pueblo.firebaseapp.com",
+            projectId: "demo-pueblo",
+            storageBucket: "demo-pueblo.appspot.com",
+            messagingSenderId: "000000000",
+            appId: "1:000000:web:demo"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const products = [
+            { id: 'p1', name: 'Hamburguesa Pro', price: 18000, desc: 'Con queso, tocino y papas', icon: '🍔' },
+            { id: 'p2', name: 'Pizza Familiar', price: 35000, desc: 'Pepperoni y extra queso', icon: '🍕' },
+            { id: 'p3', name: 'Perro Caliente', price: 12000, desc: 'El clásico del parque', icon: '🌭' },
+            { id: 'p4', name: 'Tacos Al Pastor', price: 15000, desc: 'Orden de 3 con piña', icon: '🌮' },
+        ];
+
+        const menuDiv = document.getElementById('menu');
+        let currentProd = null;
+
+        products.forEach(prod => {
+            const card = document.createElement('div');
+            card.className = 'product-card bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer';
+            card.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl bg-gray-100 w-16 h-16 flex items-center justify-center rounded-2xl">${prod.icon}</div>
+                    <div>
+                        <div class="font-bold text-gray-800">${prod.name}</div>
+                        <div class="text-xs text-gray-400">${prod.desc}</div>
+                        <div class="text-yellow-600 font-extrabold mt-1">$${prod.price.toLocaleString()}</div>
+                    </div>
+                </div>
+                <button class="bg-black text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-gray-800">Pedir</button>
+            `;
+            card.onclick = () => openModal(prod);
+            menuDiv.appendChild(card);
+        });
+
+        window.openModal = (prod) => {
+            currentProd = prod;
+            document.getElementById('modal-title').innerText = prod.name;
+            document.getElementById('modal-details').innerText = `Total: $${prod.price.toLocaleString()}`;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        window.closeModal = () => {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        }
+
+        document.getElementById('btn-send').onclick = async () => {
+            const addr = document.getElementById('address').value.trim();
+            if(!addr) return alert('Pon la dirección, mano');
+            
+            const btn = document.getElementById('btn-send');
+            btn.disabled = true;
+            btn.innerText = 'Enviando...';
+
+            try {
+                await addDoc(collection(db, "pedidos"), {
+                    producto: currentProd.name,
+                    precio: currentProd.price,
+                    direccion: addr,
+                    estado: "PENDIENTE",
+                    timestamp: serverTimestamp()
+                });
+                alert('✅ Pedido enviado. ¡El repartidor ya va en camino!');
+                closeModal();
+                document.getElementById('address').value = '';
+            } catch (e) {
+                console.error(e);
+                alert('Error en Firebase: Revisa las reglas de seguridad.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'PEDIR AHORA';
+            }
+        };
+    </script>
+</body>
+</html>
