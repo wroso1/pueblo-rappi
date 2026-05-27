@@ -27,7 +27,6 @@
         </div>
 
         <div id="orders-container" class="flex flex-col gap-4">
-            <!-- Orders flow here -->
             <div class="text-center py-20 text-gray-400">
                 <i class="fa-solid fa-spinner fa-spin text-3xl mb-4"></i>
                 <p>Sincronizando con la nube...</p>
@@ -40,12 +39,12 @@
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyA-EXAMPLE-key",
-            authDomain: "demo-pueblo.firebaseapp.com",
-            projectId: "demo-pueblo",
-            storageBucket: "demo-pueblo.appspot.com",
-            messagingSenderId: "000000000",
-            appId: "1:000000:web:demo"
+            apiKey: "AIzaSyB-DEMO-K",
+            authDomain: "wiper-6ea45.firebaseapp.com",
+            projectId: "wiper-6ea45",
+            storageBucket: "wiper-6ea45.appspot.com",
+            messagingSenderId: "0000000",
+            appId: "1:0000:web:demo"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -59,7 +58,7 @@
                     <div class="text-center py-20 text-gray-400">
                         <i class="fa-solid fa-umbrella text-5xl mb-4"></i>
                         <p>No hay pedidos pendientes.<br>¡Descansa un poco!</p>
-                    </div}
+                    </div>
                 `;
                 return;
             }
@@ -72,7 +71,7 @@
                     <div class="flex justify-between items-start">
                         <div class="flex gap-4 items-center">
                             <div class="bg-gray-100 p-3 rounded-2xl text-2xl">📦</div>
-                            <div>
+                            <div class="flex-1">
                                 <div class="font-black text-lg text-gray-800">${order.producto}</div>
                                 <div class="text-sm text-gray-500 font-medium">
                                     <i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${order.direccion}
@@ -88,7 +87,6 @@
                         TOMAR PEDIDO
                     </button>
                 `;
-                
                 card.querySelector('.btn-accept').onclick = () => acceptOrder(order.id);
                 container.appendChild(card);
             });
@@ -105,7 +103,6 @@
                     estado: "ACEPTADO",
                     timestamp_aceptado: new Date()
                 });
-                // El onSnapshot se encarga de eliminar la tarjeta automáticamente
             } catch (e) {
                 console.error(e);
                 alert('Error al aceptar pedido. Verifica tu conexión.');
@@ -114,11 +111,9 @@
             }
         }
 
-        // Listener en tiempo real: Solo pedidos PENDIENTES
         const q = query(collection(db, "pedidos"), where("estado", "==", "PENDIENTE"));
         onSnapshot(q, (snapshot) => {
             const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Ordenar por timestamp (el más viejo primero)
             orders.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
             renderOrders(orders);
         });

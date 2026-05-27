@@ -24,12 +24,9 @@
             <p class="text-gray-500 text-sm">Los mejores productos de nuestro pueblo</p>
         </div>
 
-        <div id="menu" class="grid grid-cols-1 gap-4">
-            <!-- Products render here -->
-        </div>
+        <div id="menu" class="grid grid-cols-1 gap-4"></div>
     </main>
 
-    <!-- Modal Pedido -->
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50">
         <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up">
             <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden"></div>
@@ -51,14 +48,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN FIREBASE (Reemplazar con credenciales reales)
         const firebaseConfig = {
-            apiKey: "AIzaSyA-EXAMPLE-key",
-            authDomain: "demo-pueblo.firebaseapp.com",
-            projectId: "demo-pueblo",
-            storageBucket: "demo-pueblo.appspot.com",
-            messagingSenderId: "000000000",
-            appId: "1:000000:web:demo"
+            apiKey: "AIzaSyB-DEMO-K",
+            authDomain: "wiper-6ea45.firebaseapp.com",
+            projectId: "wiper-6ea45",
+            storageBucket: "wiper-6ea45.appspot.com",
+            messagingSenderId: "0000000",
+            appId: "1:0000:web:demo"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -80,7 +76,7 @@
             card.innerHTML = `
                 <div class="flex items-center gap-4">
                     <div class="text-4xl bg-gray-100 w-16 h-16 flex items-center justify-center rounded-2xl">${prod.icon}</div>
-                    <div>
+                    <div class="flex-1">
                         <div class="font-bold text-gray-800">${prod.name}</div>
                         <div class="text-xs text-gray-400">${prod.desc}</div>
                         <div class="text-yellow-600 font-extrabold mt-1">$${prod.price.toLocaleString()}</div>
@@ -126,7 +122,7 @@
                 document.getElementById('address').value = '';
             } catch (e) {
                 console.error(e);
-                alert('Error en Firebase: Revisa las reglas de seguridad.');
+                alert('Error: Verifica que las Reglas de Firestore estén en "Modo Prueba".');
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'PEDIR AHORA';
